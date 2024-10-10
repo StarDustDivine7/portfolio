@@ -1,24 +1,75 @@
-import 'package:my_portfolio/core/app_export.dart';
-import 'package:my_portfolio/presentation/home_page.dart';
+import 'package:flutter/material.dart';
+import 'package:my_portfolio/provider/app_provider.dart';
+import 'package:my_portfolio/provider/drawer_provider.dart';
+import 'package:my_portfolio/provider/scroll_provider.dart';
+import 'package:my_portfolio/sections/main/main_section.dart';
+import 'package:provider/provider.dart';
+import 'package:url_strategy/url_strategy.dart';
+import 'package:my_portfolio/configs/core_theme.dart' as theme;
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  setPathUrlStrategy();
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
+  @override
+  MyAppState createState() => MyAppState();
+}
+
+class MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Debabrata Dutta',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AppProvider()),
+        ChangeNotifierProvider(create: (_) => DrawerProvider()),
+        ChangeNotifierProvider(create: (_) => ScrollProvider()),
+      ],
+      child: Consumer<AppProvider>(
+        builder: (context, value, _) => MaterialChild(
+          provider: value,
+        ),
       ),
-      home: HomePage(),
+    );
+  }
+}
+
+class MaterialChild extends StatefulWidget {
+  final AppProvider provider;
+  const MaterialChild({super.key, required this.provider});
+
+  @override
+  State<MaterialChild> createState() => _MaterialChildState();
+}
+
+class _MaterialChildState extends State<MaterialChild> {
+  void initAppTheme() {
+    final appProviders = AppProvider.state(context);
+    appProviders.init();
+  }
+
+  @override
+  void initState() {
+    initAppTheme();
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Portfolio Debabrata',
+      theme: theme.themeLight,
+      darkTheme: theme.themeDark,
+      themeMode: widget.provider.themeMode,
+      initialRoute: "/",
+      routes: {
+        "/": (context) => const MainPage(),
+      },
     );
   }
 }
